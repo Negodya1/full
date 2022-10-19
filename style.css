@@ -1,0 +1,41 @@
+body {
+    background-color: #00aaff;
+    height: 100%;
+    width: 100%     ;
+}
+
+.div-loginForm {
+    background-color: cyan;
+
+    display: flex;
+    flex-wrap: wrap;
+
+    max-height: fit-content;
+    width: fit-content;
+    max-width: 300px;
+    
+    scale: 1.3;
+
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    padding: 15px;
+    justify-content: space-around;
+
+    box-shadow: 2px 3px 2px rgba(0, 0, 0, 0.295);
+
+    border-radius: 3px;
+}
+
+.WrapCenteredInlineBlock {
+    display: inline-block;
+}
+
+.div-twoButtonsContainer {
+    display: flex;
+    flex: auto;
+    margin: 0 auto;
+    justify-content: space-around;
+}
