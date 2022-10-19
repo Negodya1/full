@@ -88,22 +88,24 @@ public class DataBase {
         }
     }
 
-    public static ArrayList<ArrayList<String>> selectProducts() throws SQLException, SQLTimeoutException{
+    public static ArrayList<Product> selectProducts() throws SQLException, SQLTimeoutException{
 
         PreparedStatement statement = conn.prepareStatement("SELECT * FROM products");
         ResultSet resultSet = statement.executeQuery();
 
-        ArrayList<ArrayList<String>> strResultSet = new ArrayList<>();
-		
+        ArrayList<Product> strResultSet = new ArrayList<>();
+
         while(resultSet.next()){
-			ArrayList<String> row = new ArrayList<>();
-            row.add(String.valueOf(resultSet.getInt("id")));
-            row.add(resultSet.getString("ProductName"));
-            row.add(String.valueOf(resultSet.getInt("Price")));
-            row.add(resultSet.getString("Description"));  
+            Product newProduct = Product.createProduct(
+                resultSet.getInt("id"),
+                resultSet.getString("ProductName"),
+                resultSet.getInt("Price"),
+                resultSet.getString("Description")
+            );
             
-			strResultSet.add(row);
+            strResultSet.add(newProduct);
         }
+
         resultSet.close();
         statement.close();
         return strResultSet;

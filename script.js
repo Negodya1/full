@@ -247,7 +247,7 @@ function checkUserToken(){
     var xhr = new XMLHttpRequest();
     
     var flagAsync = true;
-    xhr.open("POST", "api/getData", flagAsync);
+    xhr.open("GET", "api/getData", flagAsync);
 
     xhr.setRequestHeader('Content-type', 'application/json;charset=utf-8');
 
@@ -264,15 +264,15 @@ function checkUserToken(){
         else { 
             //console.log(xhr.responseText);
             var response = JSON.parse(xhr.responseText);
-            if(response == 'true') return true;
-            return false;
+            if(response == 'tokenError') return false;
+            return true;
         } 
        
         // получить результат из this.responseText или this.responseXML
     }
 
     var token = {
-        cryptoXBOCT JSON.parse(localStorage.getItem('WFSAppUserToken')).cryptoXBOCT,
+        cryptoXBOCT: JSON.parse(localStorage.getItem('WFSAppUserToken')).cryptoXBOCT,
         payload: JSON.parse(localStorage.getItem('WFSAppUserToken')).payload
     }
 
