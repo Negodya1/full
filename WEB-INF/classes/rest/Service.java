@@ -3,6 +3,7 @@ import jakarta.ws.rs.Path;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.DELETE;
 
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.Consumes;
@@ -32,10 +33,10 @@ public class Service {
   } 
 
   @POST
-  @Path("/checkUser")
+  @Path("/auth")
   @Consumes("application/json")
   @Produces("application/json")
-  public Response checkUser(String userJson) {
+  public Response authUser(String userJson) {
     User user;
     Jsonb jsonb = JsonbBuilder.create();
     String resultJSON = "undefinedError";
@@ -66,8 +67,6 @@ public class Service {
         resultJSON = "false";
       }
 
-      
-
     }catch (JsonbException e) {
       return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();	             
     }
@@ -78,9 +77,9 @@ public class Service {
   }
 
   @GET
-  @Path("/getData")
+  @Path("/productList")
   @Produces("application/json")
-  public Response getData(@HeaderParam("User-token") String userToken){
+  public Response getProductList(@HeaderParam("User-token") String userToken){
     Token token;
     Jsonb jsonb = JsonbBuilder.create();
     String resultJSON = "undefinedError";
@@ -115,9 +114,89 @@ public class Service {
     return Response.ok(resultJSON).build(); 
   }
 
+  @POST
+  @Path("/product")
+  @Consumes("application/json")
+  @Produces("application/json")
+  public Response getProductList(@HeaderParam("User-token") String userToken, String newProduct){
+    Token token;
+    Product product;
+    Jsonb jsonb = JsonbBuilder.create();
+    String resultJSON = "undefinedError";
+    try{
+
+      try{
+        token = jsonb.fromJson(userToken, new Token(){}.getClass().getGenericSuperclass());
+        product = jsonb.fromJson(newProduct, new Product(){}.getClass().getGenericSuperclass());
+      }catch (Exception e) {
+        resultJSON = "Error while JSON transforming.";
+        throw new Exception("Error while JSON transforming.");  
+      }
+
+      Boolean usrTrue = null;
+
+      if(Token.verifyToken(token)){
+        try{
+          DataBase.initDataBase();
+          DataBase.addRow(product.getName(), product.getPrice(), product.getDescription());
+          resultJSON = "row_added";
+        } catch(SQLException e){}
+        catch(Exception e){};
+      }else{
+        resultJSON = "tokenError";
+      }
+
+    }catch (JsonbException e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();	             
+    }
+    catch (Exception e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();	             
+    }    
+    return Response.ok(resultJSON).build(); 
+  }
+
+  @DELETE
+  @Path("/products")
+  @Produces("application/json")
+  public Response deleteProducts(@HeaderParam("User-token") String userToken,@HeaderParam("To-delete-rows") String toDeleteJSON){
+    Token token;
+    ArrayList<Integer> toDelete;
+    Jsonb jsonb = JsonbBuilder.create();
+    String resultJSON = "undefinedError";
+    try{
+
+      try{
+        token = jsonb.fromJson(userToken, new Token(){}.getClass().getGenericSuperclass());
+        toDelete = jsonb.fromJson(toDeleteJSON, new ArrayList<Integer>(){}.getClass().getGenericSuperclass());
+      }catch (Exception e) {
+        resultJSON = "Error while JSON transforming.";
+        throw new Exception("Error while JSON transforming.");  
+      }
+
+      Boolean usrTrue = null;
+
+      if(Token.verifyToken(token)){
+        try{
+          DataBase.initDataBase();
+          DataBase.deleteRows(toDelete);
+          resultJSON = "rows_deleted";
+        } catch(SQLException e){}
+        catch(Exception e){};
+      }else{
+        resultJSON = "tokenError";
+      }
+
+    }catch (JsonbException e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();	             
+    }
+    catch (Exception e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();	             
+    }    
+    return Response.ok(resultJSON).build(); 
+  }
 
   @POST
-  @Path("/createUser")
+  @Path("/user")
   @Consumes("application/json")
   @Produces("application/json")
   public Response createUser(String User){
@@ -151,5 +230,4 @@ public class Service {
     }    
     return Response.ok(jsonb.toJson(resultJSON)).build();  
   }
- 
 }
