@@ -231,7 +231,11 @@ function deleteRowsQuery(){
                 localStorage.removeItem('WFSAppUserToken');
                 setTimeout(startPage, 0);
                 return;
-            }else{
+            }
+			else if (response == "dataBaseError") {
+				alert("Ошибка базы данных. Попробуйте ещё раз!");
+			}
+			else {
                 alert("Неизвестная ошибка. Попробуйте ещё раз!");
             }
 

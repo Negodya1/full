@@ -163,30 +163,35 @@ public class Service {
     ArrayList<Integer> toDelete;
     Jsonb jsonb = JsonbBuilder.create();
     String resultJSON = "undefinedError";
-    try{
-
-      try{
+    try {
+      try {
         token = jsonb.fromJson(userToken, new Token(){}.getClass().getGenericSuperclass());
         toDelete = jsonb.fromJson(toDeleteJSON, new ArrayList<Integer>(){}.getClass().getGenericSuperclass());
-      }catch (Exception e) {
+      }
+	  catch (Exception e) {
         resultJSON = "Error while JSON transforming.";
         throw new Exception("Error while JSON transforming.");  
       }
-
-      Boolean usrTrue = null;
 
       if(Token.verifyToken(token)){
         try{
           DataBase.initDataBase();
           DataBase.deleteRows(toDelete);
           resultJSON = "rows_deleted";
-        } catch(SQLException e){}
-        catch(Exception e){};
-      }else{
+        } 
+		catch(SQLException e) {
+			return Response.ok("dataBaseError").build();
+		}
+        catch(Exception e) {
+			return Response.ok("JUST EXCEPTION").build();
+		};
+      }
+	  else {
         resultJSON = "tokenError";
       }
 
-    }catch (JsonbException e) {
+    }
+	catch (JsonbException e) {
       return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();	             
     }
     catch (Exception e) {
@@ -219,7 +224,10 @@ public class Service {
           if(userCreated == true) resultJSON = "createUser_Ok_status";
           else if (userCreated == false) resultJSON = "userIsExistStatus";
           
-        }catch (java.sql.SQLException sqle){resultJSON = "userIsExistStatus";}
+        }
+		catch (java.sql.SQLException sqle){
+			resultJSON = "userIsExistStatus";
+		}
         catch (Exception ex){resultJSON ="userIsExistStatus";};
     }
     catch (JsonbException e) {
