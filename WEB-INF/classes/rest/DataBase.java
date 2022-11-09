@@ -74,7 +74,7 @@ public class DataBase {
     }
 
     public static void deleteRows(ArrayList<Integer> to_delete) throws SQLException, SQLTimeoutException{
-        String sqlDelete = "delete from products where id::character varying = ?";
+        String sqlDelete = "DELETE FROM products WHERE id::character varying = (?)";
         if(to_delete != null){
             PreparedStatement preparedStatement = conn.prepareStatement(sqlDelete);
             for(Integer to_delete_row: to_delete){
