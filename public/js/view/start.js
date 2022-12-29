@@ -1,5 +1,7 @@
-import router from './router.js'
+import{Router}from './router.js'
 
 let root = document.getElementById('root');
 
-router.start(root);
+let router = new Router;
+
+router._startPage(root);

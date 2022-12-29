@@ -1,30 +1,36 @@
-import router from "../router.js";
-import { productModel as model } from "../../apiModel/productsModel.js";
+import { Products } from "../../apiModel/productsModel.js";
+import { User } from "../../apiModel/userModel.js";
 
-export default (function() {
-    let root = undefined;
+class pageMain{
 
-    function loginPageDisplay() {
-        router.render("loginPage");
+    constructor(newRouter){
+        this.root = undefined;
+        this.router = newRouter;
+        this.model = new Products();
+		this.user = new User();
     }
 
-    function deleteButtonClickedCallback(response, status) {
+    loginPageDisplay() {
+        this.router.renderPage("loginPage");
+    }
+	
+	async adminPageDisplay() {
+		let response = await this.user._statusQuery();
+        let status = response.status;
+        response = response.text;
+
         if(status == 200){
-            getProductList();
+			if (response == "admin") this.router.renderPage("adminPage");
             return;
         }
         if(status == 401){
             localStorage.removeItem('WFSAppUserToken');
-            renderPage();
-            return;
-        } else {
-            getProductList();
+            this.renderPage();
             return;
         }
     }
 
-    function deleteButtonClicked() {
-
+    async deleteButtonClicked() {
 
         if(document.getElementsByClassName('checkboxToDelete') == null) return;
 
@@ -37,33 +43,26 @@ export default (function() {
             }
         }
 
-        model.setCallback(deleteButtonClickedCallback);
-        model._deleteProduct(JSON.stringify(checkboxChecked));
-    }
+        let response = await this.model._deleteProduct(JSON.stringify(checkboxChecked));
+        let status = response.status;
+        response = response.text;
 
-    function addButtonClickedCallback(status) {
-        if(status == 200) {
-            getProductList();
+        if(status == 200){
+            this.getProductList();
             return;
         }
-        
-        if(status == 401) {
+        if(status == 401){
             localStorage.removeItem('WFSAppUserToken');
-            renderPage();
+            this.renderPage();
+            return;
+        } else {
+            this.getProductList();
             return;
         }
-        
-        if(status == 400){
-            alert("Вы ввели неправильные данные!");
-            getProductList();
-            return;
-        }
-
-        getProductList();
-        return;
     }
-    
-    function addButtonClicked() {
+
+    async addButtonClicked() {
+
         let product = {
             name: document.getElementById('ProductName').value,
             id: undefined,
@@ -72,24 +71,51 @@ export default (function() {
         }
 
         if(product.name == undefined || product.name == null || product.name == ''){
-            addButtonClickedCallback(400);
+            this.addButtonClickedCallback(400);
             return;
         }
         if(product.price == undefined || product.price == null || product.price == ''){
-            addButtonClickedCallback(400);
+            this.addButtonClickedCallback(400);
             return;
         }
         
-        model.setProduct(product);
-        model.setCallback(addButtonClickedCallback);
-        model._addProduct();
-    }
+        this.model.setProduct(product);
+        let response = await this.model._addProduct();
+        let status = response.status;
+        response = response.text;
 
-    function getProductsListCallback(response, status) {
+        if(status == 200) {
+            this.getProductList();
+            return;
+        }
+        
+        if(status == 401) {
+            localStorage.removeItem('WFSAppUserToken');
+            this.renderPage();
+            return;
+        }
+        
+        if(status == 400){
+            alert("Вы ввели неправильные данные!");
+            this.getProductList();
+            return;
+        }
+
+        this.getProductList();
+        return;
+    }
+    
+    async getProductList() {
+
+        let response = await this.model._getProductsList();
+
+        let status = response.status;
+        response = response.text;
+
         if(status == 401) {
             localStorage.removeItem('WFSAppUserToken');
             if(document.getElementById("productList") != null) root.removeChild(document.getElementById("productList"));
-            renderPage();
+            this.renderPage();
             return;
         } else if (status == 200) {
             if(document.getElementById("productList") != null){
@@ -118,7 +144,7 @@ export default (function() {
             btnAdd.className = "btnAdd-mainPageDisplay WrapCenteredInlineBlock";
             btnAdd.textContent = 'Add';
             btnAdd.type = 'submit';
-            btnAdd.addEventListener("click", addButtonClicked);
+            btnAdd.addEventListener("click", this.addButtonClicked.bind(this));
         
             let divAdd = document.createElement('div');
             divAdd.className = 'productListAdd';
@@ -130,7 +156,7 @@ export default (function() {
 
             let deleteButton = document.createElement('button');
             deleteButton.textContent = "Удалить";
-            deleteButton.addEventListener("click", deleteButtonClicked)
+            deleteButton.addEventListener("click", this.deleteButtonClicked.bind(this));
         
             let table = document.createElement('table');
             table.className = "table-mainPageDisplay WrapCenteredInlineBlock";
@@ -193,12 +219,7 @@ export default (function() {
         }
     }
 
-    function getProductList() {
-        model.setCallback(getProductsListCallback);
-        model._getProductsList();
-    }
-
-    function mainPageDisplay() {
+    mainPageDisplay() {
 
         root.innerHTML = '';
     
@@ -209,32 +230,42 @@ export default (function() {
         btn_exit.className = "ExitButton";
     
         btn_exit.textContent = 'Exit';
-        btn_exit.addEventListener("click", function(){
+        btn_exit.addEventListener("click", () => {
             localStorage.removeItem('WFSAppUserToken');
-            loginPageDisplay();
+            this.loginPageDisplay();
         });
     
         mainpage.appendChild(btn_exit);
+		
+		let btn_admin = document.createElement('button');
+        btn_admin.className = "AdminButton";
+    
+        btn_admin.textContent = 'Admin Menu';
+        btn_admin.addEventListener("click", () => {
+            this.adminPageDisplay();
+        });
+    
+        mainpage.appendChild(btn_admin);
+		
         root.appendChild(mainpage);
-        getProductList();
+        this.getProductList();
     }
 
-    function renderPage() {
+    renderPage() {
         if(localStorage.getItem('WFSAppUserToken') == null){
-            loginPageDisplay();
+            this.loginPageDisplay();
         }
         else {
-            mainPageDisplay();
+            this.mainPageDisplay();
         }
     }
 
-    function _init(rootParam) {
-        root = rootParam; 
-        renderPage();
+    _init(rootParam) {
+        this.root = rootParam; 
+        this.renderPage();
     }
 
-    return {
-        render: _init  
-    };
-}
-)();
+};
+
+export {pageMain};
+

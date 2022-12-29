@@ -1,49 +1,55 @@
-import { pageLogin } from "./page/login.js";
-import pageRegister from "./page/register.js";
-import pageMain from "./page/main.js"
+import{pageLogin}from "./page/login.js";
+import{pageRegister}from "./page/register.js";
+import{pageMain}from "./page/main.js";  
 
-export default (function() {
+class Router{
+
+    constructor(){
+        this.root = undefined;
+
+        this.LoginPage = {
+            page: new pageLogin(this),
+            id: "loginPage",
+            render: (root) => {
+                this.LoginPage.page._init(root);
+            }
+        };
     
-    let root;
+        this.registerPage = {
+            page: new pageRegister(this),
+            id: "registerPage",
+            render: (root) => {
+                this.registerPage.page._init(root);
+            }
+        };
+    
+        this.MainPage = {
+            page: new pageMain(this),
+            id: "mainPage",
+            render: (root) => {
+                this.MainPage.page._init(root);
+            }
+        };
+    
+        //let pages = [loginPage, registerPage, mainPage];
 
-    let loginPage = {
-        id: "loginPage",
-        render: function (root) {
-            pageLogin.render(root);
-        }
-    };
+        this.pages = [this.LoginPage, this.MainPage, this.registerPage];
 
-    let registerPage = {
-        id: "registerPage",
-        render: function (root) {
-            pageRegister.render(root);
-        }
-    };
-
-    let mainPage = {
-        id: "mainPage",
-        render: function (root) {
-            pageMain.render(root);
-        }
-    };
-
-    let pages = [loginPage, registerPage, mainPage]
-
-    function _startPage(rootParam) {
-        root = rootParam
-        loginPage.render(root);
     }
 
-    function _renderPage(pageId) {
-        for (let i = 0; i < pages.length; i++) {
-            if (pages[i].id == pageId) {
-                pages[i].render(root);
+    _startPage(rootParam) {
+        this.root = rootParam
+        this.LoginPage.render(root);
+    }
+
+    renderPage(pageId) {
+        for (let i = 0; i < this.pages.length; i++) {
+            if (this.pages[i].id == pageId) {
+                this.pages[i].render(root);
             }
         }
     }
 
-    return {
-        render: _renderPage,
-        start: _startPage
-    };
-})();
+}
+
+export {Router};

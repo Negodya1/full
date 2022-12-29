@@ -1,28 +1,46 @@
-import router from "../router.js";
-import { userModel } from "../../apiModel/userModel.js";
+import { User } from "../../apiModel/userModel.js";
 
-export default (function() {
-    let root = undefined;
+class pageRegister{
 
-    function loginButtonClicked() {
-        router.render("loginPage");
+    constructor(newRouter){
+        this.router = newRouter;
+        this.root = undefined;
+        this.userModel = new User();
     }
 
-    function registerButtonClicked() {
-        if (document.getElementById('new_login').value == '' || document.getElementById('new_password').value == '' || document.getElementById('new_email').value == '') {
+    loginButtonClicked() {
+        this.router.renderPage("loginPage");
+    }
+
+    registerButtonClicked(){
+        let regexp = /^[\w\d%$:.-]+@\w+\.\w{2,7}$/;
+        if (document.getElementById('new_login').value == '' || document.getElementById('new_password').value == '' || document.getElementById('new_email').value == '' || regexp.test(document.getElementById('new_email').value) == false) {
             if (document.getElementById('errRegister') != null) {
                 document.getElementById('registerDiv').removeChild(document.getElementById('errRegister'));
             }
             let errP = document.createElement('p');
             errP.id = 'errRegister';
             errP.style = 'display: flex; width: 150px; justify-content: space-around; flex:auto; color: red; font-size: 0.8em; font-weight: bold;';
-            errP.innerText = 'Failed to Register! Empty Login or Password!';
+            errP.innerText = 'Failed to Register! Invalid Data';
             document.getElementById('registerDiv').appendChild(errP);
             return;
-        } else registerQuery(document.getElementById('new_login').value, document.getElementById('new_password').value, document.getElementById('new_email').value); 
+        } else this.registerQuerry(document.getElementById('new_login').value, document.getElementById('new_password').value, document.getElementById('new_email').value); 
     }
 
-    function registerQuerryCallback(response, status) {
+    async registerQuerry(login,password,email) {
+
+        let user = {
+            login: login,
+            password: password,
+            email: email,
+			status: "user"
+        };
+
+        this.userModel.setUser(user);
+        let response = await this.userModel._registerQuery();
+        let status = response.status;
+        response = response.text;
+
         if (status == 200) {
             if (document.getElementById('errRegister') != null) {
                 document.getElementById('registerDiv').removeChild(document.getElementById('errRegister'));
@@ -56,21 +74,7 @@ export default (function() {
         }
     }
 
-    function registerQuery(login, password, email) {
-
-        let user = {
-            login: login,
-            password: password,
-            email: email
-        };
-
-        userModel.setUser(user);
-        userModel.setCallback(registerQuerryCallback);
-
-        userModel._registerQuery();
-    }
-
-    function registerPageDisplay() {
+    registerPageDisplay() {
         root.innerHTML = '';
         let div = document.createElement('div');
         div.id = 'registerDiv';
@@ -88,7 +92,7 @@ export default (function() {
         inp1.id = 'new_login';
         inp2.name = 'new_password';
         inp2.id = 'new_password';
-        inp2.type = 'new_password';
+        inp2.type = 'password';
         inp3.name = 'new_email';
         inp3.id = 'new_email';
     
@@ -120,38 +124,37 @@ export default (function() {
         div.appendChild(divBtn);
         root.appendChild(div);
     
-        btn1.addEventListener("click", registerButtonClicked);
-        btn2.addEventListener("click", loginButtonClicked);
+        btn1.addEventListener("click", this.registerButtonClicked.bind(this));
+        btn2.addEventListener("click", this.loginButtonClicked.bind(this));
     
-        inp1.addEventListener("keypress", function(event) {
+        inp1.addEventListener("keypress", (event) => {
             if (event.key === "Enter") {
-                registerButtonClicked();
+                this.registerButtonClicked.bind(this);
             }
         });
     
-        inp2.addEventListener("keypress", function(event) {
+        inp2.addEventListener("keypress", (event) => {
             if (event.key === "Enter") {
-                registerButtonClicked();
+                this.registerButtonClicked.bind(this);
             }
         });
     
-        inp3.addEventListener("keypress", function(event) {
+        inp3.addEventListener("keypress", (event) => {
             if (event.key === "Enter") {
-                registerButtonClicked();
+                this.registerButtonClicked.bind(this);
             }
         });
     }
 
-    function renderPage() {
-        registerPageDisplay();
+    renderPage() {
+        this.registerPageDisplay();
     }
 
-    function init(rootParam) {
-        root = rootParam; 
-        renderPage();
+    _init(rootParam){
+        this.root = rootParam; 
+        this.renderPage();
     }
 
-    return {
-        render: init  
-    };
-})();
+}
+
+export {pageRegister};
